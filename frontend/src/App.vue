@@ -13,7 +13,10 @@
           </svg>
         </div>
         <DropdownMenu class="mr-6"></DropdownMenu>
-        <button class="btn btn-red">Publish</button>
+        <router-link to="/publish" class="">
+          <button class="btn btn-red">Publish</button>
+        </router-link>
+        
       </div>
       <div v-else>
         <button class="btn btn-blue">
@@ -22,23 +25,37 @@
       </div>
       
     </div>
+    <div class="relative mb-10">
+      <div class="absolute inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-200" />
+      </div>
+    </div>
     <router-view/>
+
+    <FooterComponent></FooterComponent>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs } from 'vue';
+import { defineComponent, toRefs, onMounted } from 'vue';
 import SearchBar from '@/components/SearchBar.vue'; 
 import DropdownMenu from '@/components/DropdownMenu.vue';
+import FooterComponent from '@/components/FooterComponent.vue';
 import { store } from './store/store'
 
 export default defineComponent({
   setup() {
+    onMounted(()=>{
+			console.log('App.vue mounted!')
+      store.previousHistoryLength = window.history.length
+		})
     return { ...toRefs(store) }
   },
   components: {
     SearchBar,
     DropdownMenu,
+    FooterComponent,
   },
+  
 });
 </script>

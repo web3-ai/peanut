@@ -10,6 +10,22 @@ const routes: Array<RouteRecordRaw> = [
     children: [{ path: '/p/:profileId/:publicationId', name: 'publicationDetail', component: PublicationDetail }]
   },
   {
+    path: '/publish',
+    name: 'publish',
+    component: () => import(/* webpackChunkName: "about" */ '../views/PublisherView.vue')
+  },
+  {
+    path: '/search',
+    name: 'search',
+    props: route => ({ query: route.query.q }),
+    component: () => import(/* webpackChunkName: "about" */ '../views/SearchView.vue')
+  },
+  {
+    path: '/u/:profileId',
+    name: 'profile',
+    component: () => import(/* webpackChunkName: "about" */ '../views/ProfileView.vue')
+  },
+  {
     path: '/about',
     name: 'about',
     // route level code-splitting

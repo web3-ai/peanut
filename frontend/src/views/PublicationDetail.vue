@@ -63,10 +63,15 @@ export default defineComponent({
 			}
 		}
 		const goBack = ()=>{
-			router.push({path: '/'})
+			console.log(window.history.length, store.previousHistoryLength)
+			if (window.history.length > store.previousHistoryLength) {
+				router.go(-1)
+			} else {
+				router.push({path: '/'})
+			}			
 		}
 		onMounted(()=>{
-			console.log('Mounted!')
+			console.log('PublicationDetail mounted!')
 			getPublication(profileId, publicationId)
 			store.currentPublication = store.publicationList[0]
 		})
@@ -78,7 +83,4 @@ export default defineComponent({
 	// if currentPublication is null, get it from server
 	
 })
-
-
-
 </script>

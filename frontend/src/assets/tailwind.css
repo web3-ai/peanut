@@ -9,7 +9,16 @@
         @apply ml-10 hover:text-gray-900;
     }
     .btn {
-        @apply font-bold h-10 px-4 rounded w-24;
+        @apply font-medium h-10 px-4 rounded-md w-24;
+    }
+    .btn-white {
+        @apply text-gray-900 border-solid border-[1px] border-gray-300;
+    }
+    .btn-white:hover {
+        @apply bg-gray-100;
+    }
+    .btn-not-allowed {
+        @apply text-gray-400 bg-gray-200 border-solid border-[1px] border-gray-200 cursor-not-allowed;
     }
     .btn-blue {
         @apply bg-blue-500 text-white;
