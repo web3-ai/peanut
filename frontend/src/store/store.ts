@@ -1,12 +1,13 @@
 import { reactive } from 'vue'
 import publicationType from  '../types/publicationType'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 
 export const store = reactive({
   count: 0 as number,
+	address: null as string | null,
 	previousHistoryLength: 0 as number,
-  account: '' as string,
-  loginStatus: true as boolean,
+	providerAvailability: false as boolean,
+	defaultProfile: null as any,
   publicationList: [
         { profileId: '1', publicationId: '1', title: 'The greatest work', imageuri: 'https://cdn.dribbble.com/userupload/3251537/file/original-a58955630daa846d0b4f5912ba94c490.png?compress=1&resize=1504x1128', author: 'Hyatt Logotype',  avatar: 'https://cdn.dribbble.com/users/1763872/avatars/normal/544dc32137cbebe23f50bf2a0fdba863.png?1657896199', collect: 1, likes:2, view: 3, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' },
         { profileId: '2', publicationId: '2', title: 'The greatest work', imageuri: 'https://cdn.dribbble.com/userupload/3251537/file/original-a58955630daa846d0b4f5912ba94c490.png?compress=1&resize=1504x1128', author: 'Hyatt Logotype',  avatar: 'https://cdn.dribbble.com/users/1763872/avatars/normal/544dc32137cbebe23f50bf2a0fdba863.png?1657896199', collect: 1, likes:2, view: 3, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' },

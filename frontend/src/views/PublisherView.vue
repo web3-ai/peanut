@@ -43,7 +43,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { store } from '../store/store'
 
@@ -51,7 +51,15 @@ import { store } from '../store/store'
 export default defineComponent({
   name: 'PublisherView',
   setup() {
-    
+    onMounted(()=>{
+      if(store.address==null){
+        alert('Please login first.')
+        window.location.href = '/'
+      } else if(store.defaultProfile==null){
+        alert('Please create a profile first.')
+        window.location.href = '/'
+      }
+    })
     const router = useRouter()
     const allFiles =ref<any[]>([])
     const previewURL = ref<string[]>([])
