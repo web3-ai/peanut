@@ -12,13 +12,13 @@ import fileFollowNFT from './abis/lens-follow-nft-contract-abi.json';
 //   return param;
 // };
 
-const getParam = (name: string) => {
-  const param = process.env[name];
-  if (!param) {
-    return null;
-  }
-  return param;
-};
+// const getParam = (name: string) => {
+//   const param = process.env[name];
+//   if (!param) {
+//     return null;
+//   }
+//   return param;
+// };
 
 export const argsBespokeInit = () => {
   return process.argv.find((c) => c === '--init') !== undefined;
@@ -41,7 +41,7 @@ export const LENS_PERIPHERY_CONTRACT='0xD5037d72877808cdE7F669563e9389930AF404E8
 
 export const LENS_PERIPHERY_NAME = 'LensPeriphery';
 
-export const PROFILE_ID = getParam('PROFILE_ID'); // get profile_id from store
+// export const PROFILE_ID = getParam('PROFILE_ID'); // get profile_id from store
 
 export const LENS_FOLLOW_NFT_ABI = fileFollowNFT
 

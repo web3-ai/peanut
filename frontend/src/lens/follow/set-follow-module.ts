@@ -1,9 +1,9 @@
 import { gql } from '@apollo/client/core';
 import { apolloClient } from '../apollo-client';
 import { login } from '../authentication/login';
-import { PROFILE_ID } from '../config';
 import { signedTypeData, splitSignature } from '../ethers.service';
 import { lensHub } from '../lens-hub';
+import { store } from '@/store/store'
 
 const CREATE_SET_FOLLOW_MODULE_TYPED_DATA = `
   mutation($request: CreateSetFollowModuleRequest!) { 
@@ -46,7 +46,7 @@ const createSetFollowModuleTypedData = (setFollowModuleRequest: any) => {
 };
 
 export const setFollowModule = async () => {
-  const profileId = PROFILE_ID;
+  const profileId = store.defaultProfile.id;
   if (!profileId) {
     throw new Error('Must define PROFILE_ID in the .env to run this');
   }

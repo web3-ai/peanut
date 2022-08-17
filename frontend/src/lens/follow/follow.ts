@@ -4,6 +4,8 @@ import { login } from '../authentication/login';
 import { argsBespokeInit } from '../config';
 import { getAddressFromSigner, signedTypeData, splitSignature } from '../ethers.service';
 import { lensHub } from '../lens-hub';
+import { store } from '@/store/store'
+
 
 const CREATE_FOLLOW_TYPED_DATA = `
   mutation($request: FollowRequest!) { 
@@ -46,7 +48,7 @@ const createFollowTypedData = (followRequestInfo: any) => {
   });
 };
 
-export const follow = async (profileId: string = '0x11') => {
+export const follow = async (profileId = store.defaultProfile.id) => {
   await login();
 
   // hard coded to make the code example clear
@@ -81,9 +83,3 @@ export const follow = async (profileId: string = '0x11') => {
   console.log('follow: tx hash', tx.hash);
   return tx.hash;
 };
-
-(async () => {
-  if (argsBespokeInit()) {
-    await follow();
-  }
-})();

@@ -3,8 +3,8 @@
     <div class="flex mb-3">
       <button class="btn btn-white" @click="goBack">Cancel</button>
       <div class="grow"></div>
-      <button class="btn btn-blue" @click="submitToIPFS" v-if="previewURL.length>0">Submit</button>
-      <button class="btn btn-not-allowed" v-else>Submit</button>
+      <button class="btn btn-blue" @click="submitoWeb3Storage" v-if="previewURL.length>0">Submit</button>
+      <button class="btn btn-not-allowed" @click="submitoWeb3Storage" v-else>Submit</button>
 
     </div>
     
@@ -29,10 +29,10 @@
 
       <div class="w-4/6 mt-10 mx-auto rounded-lg overflow-hidden focus:ring-0">
         <label for="title" class="sr-only">Title</label>
-        <input type="text" name="title" id="title" class="block w-full border-0 pt-2.5 text-lg font-medium placeholder-gray-500 focus:ring-0 outline-none" placeholder="Title" />
+        <input type="text" name="title" id="title" class="block w-full border-0 pt-2.5 text-lg font-medium placeholder-gray-500 focus:ring-0 outline-none" placeholder="Title" v-model="title" />
         <div class="my-3"></div>
         <label for="description" class="sr-only">Description</label>
-        <textarea rows="3" name="description" id="description" class="block w-full border-0 py-0 resize-none placeholder-gray-500 outline-none focus:ring-0 sm:text-sm" placeholder="Write a description..." />
+        <textarea rows="3" name="description" id="description" class="block w-full border-0 py-0 resize-none placeholder-gray-500 outline-none focus:ring-0 sm:text-sm" placeholder="Write a description..." v-model="description" />
       </div>
 
     </div>
@@ -43,9 +43,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, toRefs, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { store } from '../store/store'
+import { web3_client } from '../lens/ipfs'
+import { createPost } from '../lens/publications/post'
+import { v4 as uuidv4 } from 'uuid';
+
+// // eslint-disable-next-line
+// const buffer = require('buffer/').Buffer
 
 
 export default defineComponent({
@@ -63,8 +69,11 @@ export default defineComponent({
     const router = useRouter()
     const allFiles =ref<any[]>([])
     const previewURL = ref<string[]>([])
+    const imgIdx = ref<number>(0)
+    const title = ref<string|undefined>(undefined)
+    const description = ref<string|undefined>(undefined)
     
-    return { allFiles, previewURL, router }
+    return { allFiles, previewURL, router, ...toRefs(store), imgIdx, title, description }
   },
   methods: {
     goBack(){
@@ -75,25 +84,96 @@ export default defineComponent({
     onDrop (event:any) {
       event.preventDefault()
       const droppedFiles = event.dataTransfer.files
-      // console.log(droppedFiles.length)
-      // console.log(droppedFiles[0])
-      // Object.entries(droppedFiles).forEach((f:any)=>{
-      //   this.allFiles.push(f)
-      // })
+
       for (let i = 0; i < droppedFiles.length; i++) {
         if (this.allFiles.length < 10) {
-          this.allFiles.push(droppedFiles[i])
-          this.previewURL.push(URL.createObjectURL(droppedFiles[i]))
+          if(this.supportedImageTypes.includes(droppedFiles[i].type)) {
+            this.allFiles.push(this.renameFile(droppedFiles[i]))
+            this.previewURL.push(URL.createObjectURL(droppedFiles[i]))
+          } else {
+            alert('Only support .png, .jpg or .jpeg file.')
+          }
         }
       }
-      console.log(this.previewURL)
     },
     removeFile(id:number) {
       this.allFiles.splice(id, 1)
       this.previewURL.splice(id, 1)
     },
-    submitToIPFS() {
-      console.log('submit files to IPFS')
+    async submitoWeb3Storage(){
+      let fileUrls:any[] = []
+      if (this.allFiles.length > 0) {
+        const client = web3_client()
+        const cid = await client.put(this.allFiles)
+        console.log('stored files with cid:', cid)
+        this.allFiles.forEach((file:any)=>{
+          const fileUrl = 'https://' + cid + '.ipfs.w3s.link/' + file.name
+          fileUrls.push({item: fileUrl, type: file.type, altTag: null, cover: null})
+        })
+      } else {
+        alert('Please add at least 1 image.')
+        return
+      }
+      console.log(fileUrls)
+
+      // construct publication content json 
+      const client_metadata = web3_client()
+      const postJSON = {
+        version: '1.0.0',
+        metadata_id: uuidv4(),
+        description: this.description,
+        content: '',
+        mainContentFocus: 'IMAGE',
+        locale: 'en',
+        external_url: null,
+        image: fileUrls[0].item,
+        imageMimeType: fileUrls[0].type,
+        name: this.title,
+        attributes: [],
+        media: fileUrls,
+        appId: 'peanut37',
+      }
+      console.log(postJSON)
+
+      const blob = new Blob([JSON.stringify(postJSON)], { type: 'application/json' })
+      const metadataFile = [
+        new File([blob], 'metadata.json')
+      ]
+      const metadataCID = await client_metadata.put(metadataFile)
+      const metadataURI = 'ipfs://' + metadataCID + '/metadata.json'
+      console.log(metadataURI)
+      const post_result_data = createPost(metadataURI)
+      console.log(post_result_data)
+    },
+    // submitToIPFS() {
+    //   console.log('submit files to IPFS')
+    //   this.addFiles(this.allFiles)
+    // },
+    // async convertToBuffer(reader:any){
+    //   return Buffer.from(reader)
+    // },
+    // async addFiles(files:any[]) {
+    //   return Promise.all([].map.call(files, function (file) {
+    //       return new Promise(function (resolve, reject) {
+    //           var reader = new FileReader();
+    //           reader.readAsArrayBuffer(file);
+    //           reader.onloadend = async ()=>{
+    //             let buf = buffer.from(reader.result)
+    //             let ipfs_res = await ipfs_client.add(buf)
+    //             resolve({ result: ipfs_res, file: file });
+    //           }
+    //       });
+    //   })).then(function (results) {
+    //       console.log(results)
+    //   });
+    // },
+    renameFile(originalFile:any) {
+      console.log(originalFile)
+      this.imgIdx += 1
+      return new File([originalFile], this.imgIdx.toString(), {
+          type: originalFile.type,
+          lastModified: originalFile.lastModified,
+      })
     }
   },
   components: {

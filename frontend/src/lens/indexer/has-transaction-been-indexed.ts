@@ -95,6 +95,7 @@ const hasTxBeenIndexed = (txHash: string) => {
 };
 
 export const pollUntilIndexed = async (txHash: string) => {
+  // eslint-disable-next-line
   while (true) {
     const result = await hasTxBeenIndexed(txHash);
     console.log('pool until indexed: result', result.data);
