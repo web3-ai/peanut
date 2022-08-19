@@ -29,6 +29,8 @@ export const verifyRequest = async () => {
   return result.data;
 };
 
-(async () => {
-  await verifyRequest();
-})();
+export const verifyToken = async (accessToken:string) => {
+  const result = await verify(accessToken);
+  prettyJSON('verify: result', result.data);
+  return result.data;
+};

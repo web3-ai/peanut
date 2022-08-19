@@ -1,3 +1,4 @@
+// The good approach is to refresh the token every 25 minutes automatically
 import { gql } from '@apollo/client/core';
 import { apolloClient } from '../apollo-client';
 import { prettyJSON } from '../helpers';
@@ -36,6 +37,8 @@ export const refresh = async () => {
   return newAccessToken.data;
 };
 
-(async () => {
-  await refresh();
-})();
+export const refreshTokens =async (refreshToken:string) => {
+  const newAccessToken = await refreshAuth(refreshToken);
+  prettyJSON('refresh: result', newAccessToken.data);
+  return newAccessToken.data;
+}

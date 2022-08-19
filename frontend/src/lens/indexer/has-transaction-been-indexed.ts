@@ -5,6 +5,9 @@ import { argsBespokeInit } from '../config';
 import { getAddressFromSigner } from '../ethers.service';
 import { follow } from '../follow/follow';
 import { prettyJSON, sleep } from '../helpers';
+import { store } from '@/store/store'
+import { useRouter } from 'vue-router'
+
 
 const HAS_TX_BEEN_INDEXED = `
   query($request: HasTxHashBeenIndexedRequest!) {
@@ -107,6 +110,9 @@ export const pollUntilIndexed = async (txHash: string) => {
 
       if (response.metadataStatus) {
         if (response.metadataStatus.status === 'SUCCESS') {
+          store.loading = false
+          alert('Successfully published!') // delete before launch
+          window.location.href = '/'
           return response;
         }
 
@@ -125,24 +131,7 @@ export const pollUntilIndexed = async (txHash: string) => {
     } else {
       // it got reverted and failed!
       throw new Error(response.reason);
+      alert('We are sorry, your post did not publish. Please try again.')
     }
   }
 };
-
-const testTransaction = async () => {
-
-  await login();
-
-  const hash = await follow('0x06');
-  prettyJSON('testTransaction: hash', hash);
-
-  await pollUntilIndexed(hash);
-
-  console.log('testTransaction: Indexed');
-};
-
-(async () => {
-  if (argsBespokeInit()) {
-    await testTransaction();
-  }
-})();

@@ -144,10 +144,10 @@ export const createPost = async (metadataURI:string) => {
 
   const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
 
-  console.log('create post: contract publication id', BigNumber.from(publicationId).toHexString());
+  console.log('create post: contract publication id', BigNumber.from(publicationId).toHexString()); // create post: contract publication id 0x03
   console.log(
     'create post: internal publication id',
-    profileId + '-' + BigNumber.from(publicationId).toHexString()
+    profileId + '-' + BigNumber.from(publicationId).toHexString() //create post: internal publication id 0x43cf-0x03
   );
 
   return result.data;

@@ -1,5 +1,6 @@
 import { create } from 'ipfs-http-client';
 import { Web3Storage } from 'web3.storage'
+import { NFTStorage } from 'nft.storage'
 
 export const ipfs_client = create({
   host: 'ipfs.infura.io',
@@ -15,8 +16,15 @@ export const uploadIpfs = async <T>(data: T) => {
 };
 
 // web3.storage
-const getAccessToken = ()=>{
-  return process.env.VUE_APP_Web3APIKEY
+const getWeb3StorageAccessToken = ()=>{
+  return process.env.VUE_APP_Web3STORAGEAPIKEY
 }
 // @ts-ignore
-export const web3_client = ()=>{ return new Web3Storage({token:getAccessToken()}) }
+export const web3_client = ()=>{ return new Web3Storage({token:getWeb3StorageAccessToken()}) }
+
+// NFT Storage
+const getNFTStorageAccessToken = ()=>{
+  return process.env.VUE_APP_NFTSTORAGEAPIKEY
+}
+// @ts-ignore
+export const nft_storage_client = new NFTStorage({ token: getNFTStorageAccessToken() })

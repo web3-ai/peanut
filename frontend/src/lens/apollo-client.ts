@@ -25,6 +25,9 @@ const defaultOptions: DefaultOptions = {
 const httpLink = new HttpLink({
   uri: LENS_API,
   fetch,
+  fetchOptions: {
+    mode: 'no-cors'
+  },
 });
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {

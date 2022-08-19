@@ -1,5 +1,6 @@
 <template>
-  <div class="flex flex-col min-w-max w-screen">
+  <div class="flex flex-col min-w-max w-screen relative">
+    <LoadingGIF v-if="loading"></LoadingGIF>
     <div id="nav" class="flex h-16 items-center text-gray-600 px-10 z-10">
       <img src="@/assets/icon.svg" alt="logo" class="w-20">
       <router-link to="/" class="menu">Home</router-link>
@@ -42,11 +43,13 @@ import { defineComponent, toRefs, onMounted, onBeforeUnmount } from 'vue';
 import SearchBar from '@/components/SearchBar.vue'; 
 import DropdownMenu from '@/components/DropdownMenu.vue';
 import FooterComponent from '@/components/FooterComponent.vue';
+import LoadingGIF from '@/components/LoadingGIF.vue';
 // import { provider } from './helpers/ethers.service'
 import { store } from './store/store'
 import { login } from './lens/authentication/login'
 import { setAuthenticationToken } from './lens/state';
 import { getDefaultProfile } from './lens/profile/get-default-profile'
+
 
 
 export default defineComponent({
@@ -99,7 +102,9 @@ export default defineComponent({
       store.defaultProfile = null
       setAuthenticationToken(null)
       window.location.href = '/'
-      localStorage.setItem('address', '')
+      localStorage.removeItem('address')
+      localStorage.removeItem('authenticationToken')
+      localStorage.removeItem('refreshToken')
     }
 
     onBeforeUnmount(()=>{
@@ -108,6 +113,8 @@ export default defineComponent({
       // Handle refresh logic, such that user will not need to sign in again.
       // @ts-ignore
       try {
+        console.log('BeforeUnmount')
+        console.log(store.address)
         localStorage.setItem('address', store.address==null?'':store.address)
       } catch (error) {
         console.log('localStorage is not supported')
@@ -128,6 +135,7 @@ export default defineComponent({
     SearchBar,
     DropdownMenu,
     FooterComponent,
+    LoadingGIF,
   },
   
 });

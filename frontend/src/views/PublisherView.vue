@@ -3,7 +3,7 @@
     <div class="flex mb-3">
       <button class="btn btn-white" @click="goBack">Cancel</button>
       <div class="grow"></div>
-      <button class="btn btn-blue" @click="submitoWeb3Storage" v-if="previewURL.length>0">Submit</button>
+      <button class="btn btn-blue" @click="addFilesToNFTStorage" v-if="previewURL.length>0">Submit</button>
       <button class="btn btn-not-allowed" @click="submitoWeb3Storage" v-else>Submit</button>
 
     </div>
@@ -49,9 +49,10 @@ import { store } from '../store/store'
 import { web3_client } from '../lens/ipfs'
 import { createPost } from '../lens/publications/post'
 import { v4 as uuidv4 } from 'uuid';
+import { NFTStorage } from 'nft.storage'
 
-// // eslint-disable-next-line
-// const buffer = require('buffer/').Buffer
+// eslint-disable-next-line
+const buffer = require('buffer/').Buffer
 
 
 export default defineComponent({
@@ -119,7 +120,7 @@ export default defineComponent({
       // construct publication content json 
       const client_metadata = web3_client()
       const postJSON = {
-        version: '1.0.0',
+        version: '2.0.0',
         metadata_id: uuidv4(),
         description: this.description,
         content: '',
@@ -144,6 +145,79 @@ export default defineComponent({
       console.log(metadataURI)
       const post_result_data = createPost(metadataURI)
       console.log(post_result_data)
+    },
+    // async submitToNFTStorage(){
+
+    //   var reader = new FileReader();
+    //   reader.readAsArrayBuffer(this.allFiles[0]);
+    //   reader.onloadend = async ()=>{
+    //     const buf = buffer.from(reader.result)
+    //     const data = new Blob([buf])
+    //     // @ts-ignore
+    //     const nft_storage_client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGE3NzMyOEVDMmM0OTBCNUVGNzFiNmY0QjEwZDc5MTRmNjAwMzgyNEQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2MDczOTYwNTk4NiwibmFtZSI6InBlYW51dCJ9.Vw7bcATOBjPo2ge1UD_lgD9OhCs6QctKRzQ_V-seaoM' })
+    //     const cid = await nft_storage_client.storeBlob(data)
+    //     console.log(cid)
+    //   }
+    // },
+    async addFilesToNFTStorage() {
+      // eslint-disable-next-line
+      const that = this
+      this.loading = true
+      return Promise.all([].map.call(this.allFiles, function (file) {
+          return new Promise(function (resolve, reject) {
+              var reader = new FileReader();
+              reader.readAsArrayBuffer(file);
+              reader.onloadend = async ()=>{
+                const nft_storage_client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGE3NzMyOEVDMmM0OTBCNUVGNzFiNmY0QjEwZDc5MTRmNjAwMzgyNEQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2MDczOTYwNTk4NiwibmFtZSI6InBlYW51dCJ9.Vw7bcATOBjPo2ge1UD_lgD9OhCs6QctKRzQ_V-seaoM' })
+                let buf = buffer.from(reader.result)
+                const data = new Blob([buf])
+                const cid = await nft_storage_client.storeBlob(data)
+                // @ts-ignore
+                resolve({ item: 'ipfs://'+cid, type: file.type, altTag:null, cover:null });
+              }
+          });
+      })).then(function (results) {
+          console.log(results)
+          const postJSON = {
+            version: '2.0.0',
+            metadata_id: uuidv4(),
+            description: that.description,
+            content: '',
+            mainContentFocus: 'IMAGE',
+            locale: 'en',
+            external_url: null,
+            // @ts-ignore
+            image: results[0].item,
+            // @ts-ignore
+            imageMimeType: results[0].type,
+            name: that.title,
+            attributes: [],
+            media: results,
+            appId: 'peanut37',
+          }
+          console.log(postJSON)
+
+          const metadata_blob = new Blob([JSON.stringify(postJSON)], { type: 'application/json' })
+          const nft_storage_client = new NFTStorage({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGE3NzMyOEVDMmM0OTBCNUVGNzFiNmY0QjEwZDc5MTRmNjAwMzgyNEQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2MDczOTYwNTk4NiwibmFtZSI6InBlYW51dCJ9.Vw7bcATOBjPo2ge1UD_lgD9OhCs6QctKRzQ_V-seaoM' })
+          const metadataCID = nft_storage_client.storeBlob(metadata_blob)
+
+          console.log(metadataCID)
+          metadataCID.then((metadataCID:string)=>{
+            console.log(metadataCID)
+            const metadataURI = 'ipfs://' + metadataCID
+            createPost(metadataURI).then((postData)=>{
+              console.log(postData)
+              that.loading = false
+            })
+          })
+          
+          
+          // const metadataURI = 'ipfs://' + metadataCID
+          // console.log(metadataURI)
+          // const post_result_data = createPost(metadataURI)
+          // console.log(post_result_data)
+
+      });
     },
     // submitToIPFS() {
     //   console.log('submit files to IPFS')

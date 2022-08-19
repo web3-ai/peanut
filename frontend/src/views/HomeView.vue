@@ -8,7 +8,7 @@
         </div>
         <div class="flex flex-row items-center h-6 mt-2">
           <img :src="publicationList[0].avatar" alt="" class="rounded-full h-6 w-6" @click="goToProfile(index)">
-          <span class="ml-2" @click="goToProfile(index)">{{publicationList[0].author}}</span>
+          <span class="ml-2 text-sm xl:text-base" @click="goToProfile(index)">{{publicationList[0].author}}</span>
           <div class="grow"></div>
           <img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100">
           <span class="text-sm ml-0.5">{{publicationList[0].likes}}</span>

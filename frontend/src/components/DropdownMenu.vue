@@ -50,8 +50,9 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 // import { ChevronDownIcon } from '@heroicons/vue/solid'
 import { defineComponent, toRefs } from 'vue';
 import { store } from '../store/store'
-import { setAuthenticationToken } from '../lens/state';
+import { setAuthenticationToken, setRefreshToken } from '../lens/state';
 import { useRouter } from 'vue-router'
+// import { createProfile } from '../lens/profile/create-profile'
 
 export default defineComponent({
   setup() {
@@ -63,8 +64,11 @@ export default defineComponent({
       this.address = null
       this.defaultProfile = null
       setAuthenticationToken(null)
+      setRefreshToken(null)
       this.router.push({path: '/'})
-      localStorage.setItem('address', '')
+      localStorage.removeItem('address')
+      localStorage.removeItem('authenticationToken')
+      localStorage.removeItem('refreshToken')
     },
     goToProfile(){
       this.router.push({path: '/u/' + this.defaultProfile.id})
