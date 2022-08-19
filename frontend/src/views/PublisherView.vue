@@ -48,7 +48,7 @@ import { useRouter } from 'vue-router'
 import { store } from '../store/store'
 import { web3_client } from '../lens/ipfs'
 import { createPost } from '../lens/publications/post'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 import { NFTStorage } from 'nft.storage'
 
 // eslint-disable-next-line
