@@ -52,6 +52,8 @@ import { defineComponent, toRefs } from 'vue';
 import { store } from '../store/store'
 import { setAuthenticationToken, setRefreshToken } from '../lens/state';
 import { useRouter } from 'vue-router'
+import { getPublications } from '../lens/publications/get-publications'
+
 // import { createProfile } from '../lens/profile/create-profile'
 
 export default defineComponent({
@@ -71,6 +73,16 @@ export default defineComponent({
       localStorage.removeItem('refreshToken')
     },
     goToProfile(){
+      console.log('go to my profile')
+      getPublications(this.defaultProfile.id).then((data)=>{
+				console.log('getPublications')
+				store.publicationsByCurrentProfile = data.publications.items
+			})
+			this.currentProfile = this.defaultProfile
+			this.userIsFollowing = null
+			this.userIsAuthor = true
+      
+      // window.location.href = '/u/' + this.defaultProfile.id
       this.router.push({path: '/u/' + this.defaultProfile.id})
     }
   },

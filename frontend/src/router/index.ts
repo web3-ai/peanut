@@ -7,7 +7,23 @@ const routes: Array<RouteRecordRaw> = [
     path: '',
     name: 'home',
     component: HomeView,
-    children: [{ path: '/p/:profileId/:publicationId', name: 'publicationDetail', component: PublicationDetail }]
+    children: [{ path: '/p/:internalPublicationId', name: 'publicationDetail', component: PublicationDetail }]
+  },
+  {
+    path: '/popular',
+    name: 'popular',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/PopularView.vue')
+  },
+  {
+    path: '/latest',
+    name: 'latest',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
   },
   {
     path: '/publish',
@@ -25,6 +41,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'profile',
     component: () => import(/* webpackChunkName: "about" */ '../views/ProfileView.vue')
   },
+
   {
     path: '/about',
     name: 'about',

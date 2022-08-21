@@ -3,8 +3,11 @@ import { ethers } from 'ethers';
 import { apolloClient } from '../apollo-client';
 import { login } from '../authentication/login';
 import { LENS_FOLLOW_NFT_ABI } from '../config';
-import { getAddressFromSigner, getSigner, signedTypeData, splitSignature } from '../ethers.service';
+import { getSigner, signedTypeData, splitSignature } from '../ethers.service';
 import { prettyJSON } from '../helpers';
+import { store } from '@/store/store'
+import { doesFollow } from './does-follow'
+import { pollUntilIndexed } from '../indexer/has-transaction-been-indexed';
 
 const CREATE_UNFOLLOW_TYPED_DATA = `
   mutation($request: UnfollowRequest!) { 
@@ -45,11 +48,10 @@ const createUnfollowTypedData = (profile: string) => {
   });
 };
 
-export const unfollow = async () => {
+export const unfollow = async (unfollowProfileId:string) => {
   await login();
 
   // hard coded to make the code example clear
-  const unfollowProfileId = '0x01';
   const result = await createUnfollowTypedData(unfollowProfileId);
   console.log('unfollow: result', result);
 
@@ -78,8 +80,18 @@ export const unfollow = async () => {
   // force the tx to send
   const tx = await followNftContract.burnWithSig(typedData.value.tokenId, sig);
   console.log('follow: tx hash', tx.hash);
-};
 
-(async () => {
-  await unfollow();
-})();
+  console.log('unfollow: poll until indexed');
+  const indexedResult = await pollUntilIndexed(tx.hash);
+  const logs = indexedResult.txReceipt.logs;
+  console.log('unfollow: logs', logs);
+
+  
+  // @ts-ignore
+  doesFollow(store.address, unfollowProfileId).then((data)=>{
+    store.followInProgress = false
+    store.userIsFollowing = data.doesFollow[0].follows
+  })
+  
+  return tx.hash;
+};

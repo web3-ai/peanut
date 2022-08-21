@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client/core';
 import { apolloClient } from '../apollo-client';
 import { prettyJSON } from '../helpers';
+import { store } from '@/store/store'
 
 
 const GET_DEFAULT_PROFILES = `
@@ -103,10 +104,8 @@ const getDefaultProfileRequest = (ethereumAddress: string|null) => {
 };
 
 export const getDefaultProfile = async (address: string|null) => {
-
-
   const result = await getDefaultProfileRequest(address);
-  prettyJSON('profiles: result', result.data);
-
+  // prettyJSON('profiles: result', result.data);
+  store.defaultProfile = result.data.defaultProfile
   return result.data;
 };

@@ -9,7 +9,7 @@
         @apply ml-10 hover:text-gray-900;
     }
     .btn {
-        @apply font-medium h-10 px-4 rounded-md w-24;
+        @apply font-medium h-10 mx-auto rounded-md w-24;
     }
     .btn-white {
         @apply text-gray-900 border-solid border-[1px] border-gray-300;

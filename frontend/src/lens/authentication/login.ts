@@ -9,6 +9,7 @@ import { getProfiles } from '../profile/get-profiles'
 import { verifyToken } from '../authentication/verify'
 import { refreshTokens } from '../authentication/refresh'
 import { setDefaultProfile } from '../profile/set-default-profile'
+import { following } from '../follow/following'
 
 
 
@@ -112,14 +113,7 @@ export const login = async () => {
     store.defaultProfile = data.defaultProfile
   })
 
-  // getProfiles(address).then((data)=>{
-  //   const profileId = data.profiles.items[0].id
-  //   if(profileId) {
-  //     setDefaultProfile(profileId)
-  //   }
-  // })
+  following(address)
 
-  // store.defaultProfile = defaultProfile
-  // console.log(defaultProfile)
   return accessTokens.data
 };

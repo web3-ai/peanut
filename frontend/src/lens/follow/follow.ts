@@ -1,10 +1,12 @@
 import { gql } from '@apollo/client/core';
 import { apolloClient } from '../apollo-client';
 import { login } from '../authentication/login';
-import { argsBespokeInit } from '../config';
-import { getAddressFromSigner, signedTypeData, splitSignature } from '../ethers.service';
+import { signedTypeData, splitSignature } from '../ethers.service';
 import { lensHub } from '../lens-hub';
 import { store } from '@/store/store'
+import { doesFollow } from './does-follow'
+import { pollUntilIndexed } from '../indexer/has-transaction-been-indexed';
+
 
 
 const CREATE_FOLLOW_TYPED_DATA = `
@@ -48,7 +50,7 @@ const createFollowTypedData = (followRequestInfo: any) => {
   });
 };
 
-export const follow = async (profileId = store.defaultProfile.id) => {
+export const follow = async (profileId:string) => {
   await login();
 
   // hard coded to make the code example clear
@@ -70,7 +72,7 @@ export const follow = async (profileId = store.defaultProfile.id) => {
   const { v, r, s } = splitSignature(signature);
 
   const tx = await lensHub.followWithSig({
-    follower: getAddressFromSigner(),
+    follower: store.address,
     profileIds: typedData.value.profileIds,
     datas: typedData.value.datas,
     sig: {
@@ -81,5 +83,18 @@ export const follow = async (profileId = store.defaultProfile.id) => {
     },
   });
   console.log('follow: tx hash', tx.hash);
+
+  console.log('follow: poll until indexed');
+  const indexedResult = await pollUntilIndexed(tx.hash);
+  const logs = indexedResult.txReceipt.logs;
+  console.log('follow: logs', logs);
+
+  
+  // @ts-ignore
+  doesFollow(store.address, profileId).then((data)=>{
+    store.followInProgress = false
+    store.userIsFollowing = data.doesFollow[0].follows
+  })
+  
   return tx.hash;
 };

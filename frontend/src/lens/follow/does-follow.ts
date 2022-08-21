@@ -1,4 +1,5 @@
 import { gql } from '@apollo/client/core';
+import { Address } from 'cluster';
 import { apolloClient } from '../apollo-client';
 import { prettyJSON } from '../helpers';
 
@@ -25,11 +26,11 @@ const doesFollowRequest = (
   });
 };
 
-export const doesFollow = async () => {
+export const doesFollow = async (followerAddress:string, profileId:string) => {
   const followInfos = [
     {
-      followerAddress: '0xEEA0C1f5ab0159dba749Dc0BAee462E5e293daaF',
-      profileId: '0x02',
+      followerAddress: followerAddress,
+      profileId: profileId,
     },
   ];
 
@@ -38,7 +39,3 @@ export const doesFollow = async () => {
 
   return result.data;
 };
-
-(async () => {
-  await doesFollow();
-})();

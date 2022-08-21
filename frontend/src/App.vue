@@ -4,7 +4,7 @@
     <div id="nav" class="flex h-16 items-center text-gray-600 px-10 z-10">
       <img src="@/assets/icon.svg" alt="logo" class="w-20">
       <router-link to="/" class="menu">Home</router-link>
-      <router-link to="/about" class="menu">Popular</router-link>
+      <router-link to="/popular" class="menu">Popular</router-link>
       <router-link to="/about" class="menu">Latest</router-link>
       <SearchBar></SearchBar>
       <div class="flex" v-if="address!=null">
@@ -49,54 +49,75 @@ import { store } from './store/store'
 import { login } from './lens/authentication/login'
 import { setAuthenticationToken } from './lens/state';
 import { getDefaultProfile } from './lens/profile/get-default-profile'
-
-
+import { explorePopular } from './lens/explore/explore-publications'
+import { following } from './lens/follow/following'
+import { getPublications } from './lens/publications/get-publications';
 
 export default defineComponent({
   setup() {
-    onMounted(()=>{
-			console.log('App.vue mounted!')
-      store.previousHistoryLength = window.history.length
-
-      /*
-      Retrieve previously connected account.
-      To Improve:
-        - set a time limit. Eg. after 30 min, user need to login again.
-      */ 
-      const preAddress:string|null = localStorage.getItem('address')
-      console.log(preAddress)
-      if(preAddress != ''){
-        // @ts-ignore
-        window.ethereum.request({ method: 'eth_accounts' }).then((accounts)=>{
-          console.log(accounts)
-          if (accounts.length) {
-            store.address = accounts[0]
-            getDProfile(accounts[0])
-          }
-        }).catch(console.error)
-      }
-      
-
-      
-      // @ts-ignore
-      window.ethereum.on('accountsChanged', function (accounts) {
-        console.log('Account changed')
-        if (typeof accounts[0] == 'undefined'){
-          console.log('wallet disconnected')
-          disconnect()
-        } else {
-          store.address = accounts[0]
-          localStorage.setItem('address', accounts[0])
-          getDProfile(accounts[0])
-          
-        }
-      })
-		})
     const getDProfile = (address:string)=>{
       getDefaultProfile(address).then((data) => {
-        store.defaultProfile = data.defaultProfile
+        explorePopular([data.defaultProfile.id]).then((data)=>{
+          console.log('explore publications')
+        })
+      })
+
+    }
+    const getFollowingPublications = (address:string)=>{
+      following(address).then((data)=>{
+        console.log('Then of following: ', data)
+        /* 
+          The publication retrieving logic can be optimized, save the state, no need to refresh in certain minutes
+        */ 
+        store.followingPublicationList = []
+        store.followedAccounts.map((address)=>{
+          getPublications(address).then((data)=>{
+            console.log('getPublications for: ', address)
+            data.publications.items.map((item:any)=>{
+              store.followingPublicationList.push(item)
+            })
+          })
+        })
       })
     }
+
+    console.log('App.vue mounted!')
+    store.previousHistoryLength = window.history.length
+
+    /*
+    Retrieve previously connected account.
+    To Improve:
+      - set a time limit. Eg. after 30 min, user need to login again.
+    */ 
+    const preAddress:string|null = localStorage.getItem('address')
+    console.log(preAddress)
+    if(preAddress != null){
+      // @ts-ignore
+      window.ethereum.request({ method: 'eth_accounts' }).then((accounts)=>{
+        // console.log(accounts)
+        if (accounts.length) {
+          store.address = accounts[0]
+          getDProfile(accounts[0])
+          getFollowingPublications(accounts[0])
+        }
+      }).catch(console.error)
+    }
+    
+    // @ts-ignore
+    window.ethereum.on('accountsChanged', function (accounts) {
+      console.log('Account changed')
+      if (typeof accounts[0] == 'undefined'){
+        console.log('wallet disconnected')
+        disconnect()
+      } else {
+        store.address = accounts[0]
+        localStorage.setItem('address', accounts[0])
+        getDProfile(accounts[0])
+        getFollowingPublications(accounts[0])
+      }
+    })
+		// })
+
     const disconnect =()=>{
       store.address = null
       store.defaultProfile = null
@@ -126,6 +147,7 @@ export default defineComponent({
   methods: {
     async login() {
       await login()
+      following(this.address)
       // const defaultProfile = getDefaultProfile(this.address)
       // console.log(defaultProfile)
     },

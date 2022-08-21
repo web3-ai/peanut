@@ -7,7 +7,6 @@ import { store } from '../store/store'
 
 // @ts-ignore
 const { ethereum } = window;
-console.log(ethereum)
 if (!ethereum) {
   console.log('no wallet detected')
   store.providerAvailability = false

@@ -3,31 +3,41 @@
 		<div class="flex flex-row-reverse items-center h-8" @click="goBack">
 			<img src="@/assets/icons/close.svg" alt="" class="h-6 mr-1 cursor-pointer">
 		</div>
-		<div class="flex flex-col bg-white h-full rounded-t-xl 2xl:flex-row overflow-y-scroll" id="publication-detail-page">
+		<div class="flex flex-col bg-white h-full rounded-t-xl 2xl:flex-row overflow-y-scroll" id="publication-detail-page" v-if="currentPublication!=null">
 			<div class="mx-auto container p-10 flex flex-col 2xl:w-3/4">
 				<div class="flex" id="publication-detail-header">
 					<div class="flex h-12">
-						<img :src="currentPublication?.avatar" alt="avatar of the creator" class="rounded-full">
+						<img :src="currentPublication.profile.picture.original.url" alt="avatar of the creator" class="rounded-full cursor-pointer" @click="goToProfile(currentPublication.profile.id)">
 						<div class="flex flex-col ml-3">
-							<span>{{currentPublication?.author}}</span>
-							<span>Follow</span> <!-- Following logic here -->
+							<span class="font-bold my-auto cursor-pointer" @click="goToProfile(currentPublication.profile.id)">{{currentPublication.profile.handle}}</span>
+							<span v-if="!(defaultProfile==null || userIsAuthor)">
+								<span v-if="userIsFollowing===false&&followInProgress===false" class="hover:text-blue-600 cursor-pointer" @click="requestFollow">Follow</span>
+								<span v-else-if="followInProgress===true" class="text-gray-500 italic">Request pending...</span>
+								<span v-else>Following (<span class="hover:text-red-600 cursor-pointer" @click="requestUnfollow">unfollow</span>)</span>
+							</span> <!-- Following logic here -->
 						</div>
 					</div>
 					<div class="grow"></div>
-					<div>
-						<button class="btn btn-red">
+					
+					<div v-if="defaultProfile!==null">
+						<button class="btn btn-red" v-if="!userIsAuthor" @click="requestCollect(currentPublication.id)">
 							Collect
 						</button>
-						<button class="btn btn-red ml-10">
-							Like
+						<button class="btn btn-not-allowed" v-else>
+							Collect
 						</button>
+						<!-- <button class="btn btn-red ml-10">
+							Like
+						</button> -->
 					</div>
 				</div>
 				<div class="flex flex-col mt-10" id="publication-detail-content">
-					<div class="text-center text-2xl">{{currentPublication?.title}}</div>
-					<img :src="currentPublication?.imageuri" alt="" class="mt-10">
-					<img :src="currentPublication?.imageuri" alt="" class="mt-10">
-					<div class="text-lg mt-10 px-10">{{currentPublication?.description}}</div>
+					<div class="text-center text-2xl">{{currentPublication.metadata.name}}</div>
+					<div v-for="media in currentPublication.metadata.media" :key="media">
+						<img :src="'https://ipfs.io/ipfs/' + media.original.url.split('//')[1]" alt="" class="mt-10 rounded-md" />
+					</div>
+					
+					<div class="text-lg mt-10 px-10">{{currentPublication.metadata.description}}</div>
 					<!-- Potentially more images -->
 					<RelatedPublications></RelatedPublications>
 
@@ -38,48 +48,90 @@
 			<!-- Comment is optional -->
 			<!-- <div class="w-full 2xl:w-1/4 bg-blue-100">Comment</div> -->
 			
-		</div>
-		<!-- Publication detail {{profileId}}, {{publicationId}} -->
-		
+		</div>		
 	</div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, toRefs, ComputedRef } from 'vue'
+import { computed, defineComponent, onBeforeMount, onMounted, onUnmounted, toRefs, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { store } from '../store/store'
 import RelatedPublications from '@/components/RelatedPublications.vue';
+import { doesFollow } from '../lens/follow/does-follow'
+import { follow } from '../lens/follow/follow'
+import { unfollow } from '../lens/follow/unfollow'
+import { getPublication } from '../lens/publications/get-publication'
+import { collect } from '../lens/module/collect'
 
 
 export default defineComponent({
 	setup() {
 		const router = useRouter()
 		const route = useRoute()
-		const profileId = computed(()=>route.params.profileId) as ComputedRef<string | number>
-		const publicationId = computed(()=>route.params.publicationId)
-		const getPublication = (profileId:any, publicationId:any) => {
+		// const profileId = computed(()=>route.params.profileId) as ComputedRef<string | number>
+		const internalPublicationId = route.params.internalPublicationId
+		
+		
+		
+		onBeforeMount(()=>{
+			console.log('PublicationDetail mounted!')
 			if (store.currentPublication === null){
-				store.currentPublication = store.publicationList[0]
+				getPublication(internalPublicationId).then((data)=>{
+					console.log('get publication')
+					store.currentPublication = data.publication
+					store.currentProfile = data.publication.profile
+					store.userIsFollowing = store.currentProfile.isFollowedByMe
+					store.userIsAuthor = store.currentProfile.id == store.defaultProfile.id
+				})
+			} else {
+				store.userIsAuthor = store.currentPublication.profile.id == store.defaultProfile.id
 			}
-		}
-		const goBack = ()=>{
+		})
+		onUnmounted(()=>{
+			console.log('onUnmounted publicationDetail.vue')
+			store.currentPublication = null
+			store.currentProfile = null
+			store.userIsFollowing = null
+			store.userIsAuthor = null
+		})
+
+		return { ...toRefs(store), internalPublicationId, router }
+	},
+	methods: {
+		async requestFollow(){
+			this.followInProgress = true
+			await follow(this.currentPublication.profile.id)
+		},
+		async requestUnfollow(){
+			this.followInProgress = true
+			await unfollow(this.currentPublication.profile.id)
+		},
+		async requestCollect(internalPublicationId:string){
+			await collect(internalPublicationId)
+		},
+		checkFollowingStatus(){
+			// @ts-ignore
+			doesFollow(this.address, this.currentPublication.profile.id).then((data)=>{
+				console.log('Does the user follow the account?')
+				store.userIsFollowing = data.doesFollow[0].follows
+			})
+		},
+		goBack(){
 			console.log(window.history.length, store.previousHistoryLength)
 			if (window.history.length > store.previousHistoryLength) {
-				router.go(-1)
+				this.router.go(-1)
 			} else {
-				router.push({path: '/'})
+				this.router.push({path: '/'})
 			}			
+		},
+		goToProfile (profileId:number) {
+			this.router.push({path: '/u/' + profileId})
 		}
-		onMounted(()=>{
-			console.log('PublicationDetail mounted!')
-			getPublication(profileId, publicationId)
-			store.currentPublication = store.publicationList[0]
-		})
-		return { ...toRefs(store), profileId, publicationId, goBack }
 	},
 	components: {
 		RelatedPublications,
-	}
+	},
+
 	// if currentPublication is null, get it from server
 	
 })
