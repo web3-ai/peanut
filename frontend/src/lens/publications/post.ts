@@ -150,5 +150,5 @@ export const createPost = async (metadataURI:string) => {
     profileId + '-' + BigNumber.from(publicationId).toHexString() //create post: internal publication id 0x43cf-0x03
   );
 
-  return result.data;
+  return profileId + '-' + BigNumber.from(publicationId).toHexString()
 };

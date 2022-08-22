@@ -10,8 +10,11 @@ export const store = reactive({
 	defaultProfile: null as any,			// The user's profile. Should change it to 'profile', since 'defaultProfile' means something else in lens
 	userIsFollowing: null as boolean|null,  // If the user is following the the account on PublicationDetail.vue
 	userIsAuthor: null as boolean|null,		// If the user is the owner of a profile
-	followInProgress: false as boolean, 	// Indicator if transaction is happenning
+	followInProgress: false as boolean, 	// Indicator if follow transaction is happenning
+	collectInProgress: false as boolean, 	// Indicator if collect transaction is happenning
 	followedAccounts: [] as string[], 		// The accounts an address is following
+	requestNewHomeFeed: false as boolean,	// After actions like following, the home feed should be updated.
+	likedPublicationIds: [] as string[],	// Localstorage for liked posts, need to switch to Lens Upvote
 	supportedImageTypes: ['image/jpeg', 'image/png', 'image/jpg'] as string[],
 	publicationList: [
 		{ profileId: '1', publicationId: '1', title: 'The greatest work', imageuri: 'https://cdn.dribbble.com/userupload/3251537/file/original-a58955630daa846d0b4f5912ba94c490.png?compress=1&resize=1504x1128', author: 'Hyatt Logotype',  avatar: 'https://cdn.dribbble.com/users/1763872/avatars/normal/544dc32137cbebe23f50bf2a0fdba863.png?1657896199', collect: 1, likes:2, view: 3, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' },
@@ -67,12 +70,38 @@ export const store = reactive({
 		{ profileId: '1',publicationId: '13', title: 'The greatest work', imageuri: 'https://cdn.dribbble.com/userupload/3251537/file/original-a58955630daa846d0b4f5912ba94c490.png?compress=1&resize=1504x1128', author: 'Hyatt Logotype',  avatar: 'https://cdn.dribbble.com/users/1763872/avatars/normal/544dc32137cbebe23f50bf2a0fdba863.png?1657896199', collect: 1, likes:2, view: 3, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' },
 		{ profileId: '2', publicationId: '1', title: 'The greatest work', imageuri: 'https://cdn.dribbble.com/userupload/3251537/file/original-a58955630daa846d0b4f5912ba94c490.png?compress=1&resize=1504x1128', author: 'Hyatt Logotype',  avatar: 'https://cdn.dribbble.com/users/1763872/avatars/normal/544dc32137cbebe23f50bf2a0fdba863.png?1657896199', collect: 1, likes:2, view: 3, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' }
 	] as publicationType[],
-  // increment() {
-  //   this.count++
-  // },
-	// goToDetailPage(id:number) {
-	// 	const router = useRouter()
-	// 	this.currentPublication = this.publicationList[id]
-	// 	router.push({path: '/p/' + this.currentPublication.profileId +'/' + this.currentPublication.publicationId})
-	// }
+	likedAPublications(internalPublicationId:string){
+		if (localStorage.getItem("internalPublicationId") !== null){
+			// @ts-ignore
+			this.likedPublicationIds = JSON.parse(localStorage.getItem("internalPublicationId"))
+		} else {
+			this.likedPublicationIds = []
+		}
+		if (!this.likedPublicationIds.includes(internalPublicationId)){
+			this.likedPublicationIds.push(internalPublicationId)
+			localStorage.setItem("internalPublicationId", JSON.stringify(this.likedPublicationIds));
+		} else {
+			console.log('ProfileIds already in localStorage')
+		}
+		console.log(this.likedPublicationIds)
+	},
+	unlikedAPublications(internalPublicationId:string){
+		if (localStorage.getItem("internalPublicationId") !== null){
+			// @ts-ignore
+			this.likedPublicationIds = JSON.parse(localStorage.getItem("internalPublicationId"))
+		} else {
+			this.likedPublicationIds = []
+		}
+		if (this.likedPublicationIds.includes(internalPublicationId)){
+			const index = this.likedPublicationIds.indexOf(internalPublicationId)
+			if (index > -1) {
+				this.likedPublicationIds.splice(index, 1); 
+			}
+			localStorage.setItem("internalPublicationId", JSON.stringify(this.likedPublicationIds));
+		} else {
+			console.log('ProfileIds already in localStorage')
+		}
+		console.log(this.likedPublicationIds)
+	},
+	// blockPublications: ['0x43c5-0x04', '0x43c5-0x05', '0x43c5-0x03', '0x43c5-0x01'] as string[]
 })

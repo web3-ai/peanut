@@ -1,9 +1,9 @@
 <template>
 	<!-- Data model need to be redesigned -->
 	<div class="w-screen relative">
-		<div class="mx-auto container py-10 flex flex-col 2xl:w-3/4">
+		<div class="mx-auto w-full px-20 pt-10 flex flex-col 2xl:w-3/4">
 			<div class="flex" id="publication-detail-header" v-if="currentProfile!=null">
-				<div class="flex h-12">
+				<div class="flex h-20">
 					<img :src="currentProfile.picture.original.url" alt="avatar of the creator" class="rounded-full">
 					
 					<div class="flex ml-3 text-4xl font-bold items-center">
@@ -26,12 +26,21 @@
 				</div>
 			</div>
 		</div>
-
-		<div class="w-full ml-20 my-6">
+		<div class="inline-flex w-full px-20 mt-10 mb-6" v-if="currentProfile!==null">
+			<div class="flex flex-col">
+				<span class="text-lg font-bold">{{currentProfile.stats.totalFollowers}}</span>
+				<span class="text-base text-gray-500">Follower</span>
+			</div>
+			<div class="flex flex-col ml-4">
+				<span class="text-lg font-bold">{{currentProfile.stats.totalFollowing}}</span>
+				<span class="text-base text-gray-500">Following</span>
+			</div>
+		</div>
+		<div class="w-full px-20 my-6">
 			<!-- Make these buttons really work -->
 			<span class="mx-auto relative z-0 inline-flex shadow-sm rounded-md bg-red-100">
-				<button type="button" class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">Posts</button>
-				<button type="button" class="-ml-px relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">Likes</button>
+				<button autofocus type="button" class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-0 focus:ring-red-500 focus:border-red-500 focus:bg-red-500 focus:text-gray-100 autofocus">Posts</button>
+				<button type="button" class="-ml-px relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-0 focus:ring-red-500 focus:border-red-500 focus:bg-red-500 focus:text-gray-100">Likes</button>
 			</span>
 		</div>
 
@@ -45,8 +54,9 @@
 					<img :src="publication.profile.picture.original.url" alt="" class="rounded-full h-6 w-6">
 					<span class="ml-2">{{publication.profile.handle}}</span>
 					<div class="grow"></div>
-					<img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100">
-					<span class="text-sm ml-0.5">{{publicationList[0].likes}}</span>
+					<img src="../assets/icons/heart.svg" alt="" class="w-4 fill-current text-red-100" v-if="likedPublicationIds.includes(publication.id)">
+					<img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100" v-else>
+					<!-- <span class="text-sm ml-0.5">{{publicationList[0].likes}}</span> -->
 					<img src="../assets/icons/collection-outline.svg" alt="" class="w-4 fill-gray-100 ml-2">
 					<span class="text-sm ml-0.5">{{publicationList[0].collect}}</span>
 				</div>
@@ -96,8 +106,10 @@ export default defineComponent({
 			}
 			getPublications(profileId).then((data)=>{
 				console.log('getPublications')
+				console.log(data)
 				store.publicationsByCurrentProfile = data.publications.items
 			})
+
 		})
 		onUnmounted(()=>{
 			console.log('onUnmounted, clear the store.currentProfile')

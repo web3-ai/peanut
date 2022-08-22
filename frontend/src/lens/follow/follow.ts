@@ -94,6 +94,7 @@ export const follow = async (profileId:string) => {
   doesFollow(store.address, profileId).then((data)=>{
     store.followInProgress = false
     store.userIsFollowing = data.doesFollow[0].follows
+    store.requestNewHomeFeed = true
   })
   
   return tx.hash;

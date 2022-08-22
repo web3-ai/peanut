@@ -91,6 +91,7 @@ export const unfollow = async (unfollowProfileId:string) => {
   doesFollow(store.address, unfollowProfileId).then((data)=>{
     store.followInProgress = false
     store.userIsFollowing = data.doesFollow[0].follows
+    store.requestNewHomeFeed = true
   })
   
   return tx.hash;

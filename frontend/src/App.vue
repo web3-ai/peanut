@@ -3,9 +3,9 @@
     <LoadingGIF v-if="loading"></LoadingGIF>
     <div id="nav" class="flex h-16 items-center text-gray-600 px-10 z-10">
       <img src="@/assets/icon.svg" alt="logo" class="w-20">
-      <router-link to="/" class="menu">Home</router-link>
-      <router-link to="/popular" class="menu">Popular</router-link>
-      <router-link to="/about" class="menu">Latest</router-link>
+      <router-link to="/" class="menu" :class="[route.path=='/'? 'underline decoration-red-400 underline-offset-8 decoration-2':'']">Home</router-link>
+      <router-link to="/popular" class="menu" :class="[route.path=='/popular'? 'underline decoration-red-400 underline-offset-8 decoration-2':'']">Popular</router-link>
+      <!-- <router-link to="/about" class="menu">Latest</router-link> -->
       <SearchBar></SearchBar>
       <div class="flex" v-if="address!=null">
         <div class="h-10 w-10 mr-3">
@@ -32,6 +32,7 @@
         <div class="w-full border-t border-gray-200" />
       </div>
     </div>
+    
     <router-view/>
 
     <FooterComponent></FooterComponent>
@@ -44,6 +45,7 @@ import SearchBar from '@/components/SearchBar.vue';
 import DropdownMenu from '@/components/DropdownMenu.vue';
 import FooterComponent from '@/components/FooterComponent.vue';
 import LoadingGIF from '@/components/LoadingGIF.vue';
+import { useRoute } from 'vue-router'
 // import { provider } from './helpers/ethers.service'
 import { store } from './store/store'
 import { login } from './lens/authentication/login'
@@ -51,10 +53,19 @@ import { setAuthenticationToken } from './lens/state';
 import { getDefaultProfile } from './lens/profile/get-default-profile'
 import { explorePopular } from './lens/explore/explore-publications'
 import { following } from './lens/follow/following'
-import { getPublications } from './lens/publications/get-publications';
+import { getPublications } from './lens/publications/get-publications'
 
 export default defineComponent({
   setup() {
+    const route = useRoute()
+
+    
+    if (localStorage.getItem("internalPublicationId") !== null){
+      // @ts-ignore
+      store.likedPublicationIds = JSON.parse(localStorage.getItem("internalPublicationId"))
+    }
+    console.log('likedPublicationIds: ', store.likedPublicationIds)
+
     const getDProfile = (address:string)=>{
       getDefaultProfile(address).then((data) => {
         explorePopular([data.defaultProfile.id]).then((data)=>{
@@ -65,14 +76,14 @@ export default defineComponent({
     }
     const getFollowingPublications = (address:string)=>{
       following(address).then((data)=>{
-        console.log('Then of following: ', data)
+        // console.log('Then of following: ', data)
         /* 
           The publication retrieving logic can be optimized, save the state, no need to refresh in certain minutes
         */ 
         store.followingPublicationList = []
         store.followedAccounts.map((address)=>{
           getPublications(address).then((data)=>{
-            console.log('getPublications for: ', address)
+            // console.log('getPublications for: ', address)
             data.publications.items.map((item:any)=>{
               store.followingPublicationList.push(item)
             })
@@ -111,6 +122,8 @@ export default defineComponent({
         disconnect()
       } else {
         store.address = accounts[0]
+        const internalPublicationId = route.params.internalPublicationId
+        console.log('internalPublicationId: ', internalPublicationId)
         localStorage.setItem('address', accounts[0])
         getDProfile(accounts[0])
         getFollowingPublications(accounts[0])
@@ -121,12 +134,15 @@ export default defineComponent({
     const disconnect =()=>{
       store.address = null
       store.defaultProfile = null
+      store.currentPublication = null
       setAuthenticationToken(null)
       window.location.href = '/'
       localStorage.removeItem('address')
       localStorage.removeItem('authenticationToken')
       localStorage.removeItem('refreshToken')
     }
+
+    
 
     onBeforeUnmount(()=>{
       //  remove event listener here.
@@ -142,7 +158,7 @@ export default defineComponent({
         console.log(error)
       }
     })
-    return { ...toRefs(store) }
+    return { ...toRefs(store), route }
   },
   methods: {
     async login() {

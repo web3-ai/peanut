@@ -5,6 +5,8 @@ import { getAddressFromSigner, signedTypeData, splitSignature } from '../ethers.
 import { prettyJSON } from '../helpers';
 import { lensHub } from '../lens-hub';
 import { store } from '@/store/store';
+import { pollUntilIndexed } from '../indexer/has-transaction-been-indexed';
+
 
 const CREATE_COLLECT_TYPED_DATA = `
   mutation($request: CreateCollectRequest!) { 
@@ -87,4 +89,14 @@ export const collect = async (internalPublicationId:any) => {
     { gasLimit: 1000000 }
   );
   console.log('collect: tx hash', tx.hash);
+
+  console.log('follow: poll until indexed');
+  const indexedResult = await pollUntilIndexed(tx.hash);
+  const logs = indexedResult.txReceipt.logs;
+  console.log('follow: logs', logs);
+  store.currentProfile.stats.totalAmountOfCollects += 1
+  store.collectInProgress = false
+  store.currentProfile.hasCollectedByMe = true
+  return tx.hash
+
 };

@@ -10,10 +10,11 @@
             <img :src="publication.profile.picture.original.url" alt="" class="rounded-full h-6 w-6" @click="goToProfile(publication.profile.id)">
             <span class="ml-2 text-sm xl:text-base" @click="goToProfile(publication.profile.id)">{{publication.profile.handle}}</span>
             <div class="grow"></div>
-            <img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100">
-            <span class="text-sm ml-0.5">{{publicationList[0].likes}}</span>
+            <img src="../assets/icons/heart.svg" alt="" class="w-4 fill-current text-red-100" v-if="likedPublicationIds.includes(publication.id)">
+            <img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100" v-else>
+            <!-- <span class="text-sm ml-0.5" v-if="likedPublicationIds.includes(publication.id)">{{publicationList[0].likes}}</span> -->
             <img src="../assets/icons/collection-outline.svg" alt="" class="w-4 fill-gray-100 ml-2">
-            <span class="text-sm ml-0.5">{{publicationList[0].collect}}</span>
+            <span class="text-sm ml-0.5">{{publication.stats.totalAmountOfCollects}}</span>
           </div>
         </div>
       </div>
@@ -24,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRefs } from 'vue'
+import { defineComponent, toRefs, onUnmounted } from 'vue'
 import { store } from '../store/store'
 import { useRouter } from 'vue-router'
 import { following } from '../lens/follow/following'
@@ -51,10 +52,15 @@ export default defineComponent({
         })
       })
     }
-    if (store.address!==null){
+
+    if (store.address!==null && store.requestNewHomeFeed){
       // @ts-ignore
       getFollowingPublications(store.address)
+      store.requestNewHomeFeed = false
     }
+    // onUnmounted(()=>{
+    //   store.followingPublicationList = []
+    // })
 
     return { ...toRefs(store), router }
   },

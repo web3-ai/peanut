@@ -182,7 +182,7 @@ export default defineComponent({
             version: '2.0.0',
             metadata_id: uuidv4(),
             description: that.description,
-            content: '',
+            content: that.title + ' ' + that.description,
             mainContentFocus: 'IMAGE',
             locale: 'en',
             external_url: null,
@@ -205,9 +205,20 @@ export default defineComponent({
           metadataCID.then((metadataCID:string)=>{
             console.log(metadataCID)
             const metadataURI = 'ipfs://' + metadataCID
-            createPost(metadataURI).then((postData)=>{
-              console.log(postData)
+            createPost(metadataURI).then((internalPublicationId)=>{
+              console.log(internalPublicationId)
               that.loading = false
+              // post image to server for embedding
+              // @ts-ignore
+              const imageCID = results[0].item.split('//')[1]
+              const url = 'https://oeog73oa9k.execute-api.us-west-2.amazonaws.com/1/add-publication' + '?publicationId=' + internalPublicationId + '&imageUrl=https://ipfs.io/ipfs/' + imageCID
+              console.log(url)
+              fetch(url).then(function(response) {
+                console.log('add publication to server succeeded!')
+                return response.json()
+              }).then(function(data) {
+                console.log(data.status)
+              });
             })
           })
           

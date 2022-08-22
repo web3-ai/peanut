@@ -6,8 +6,9 @@
 
 @layer components {
     .menu {
-        @apply ml-10 hover:text-gray-900;
+        @apply ml-10 text-gray-500 hover:text-red-700;
     }
+    
     .btn {
         @apply font-medium h-10 mx-auto rounded-md w-24;
     }

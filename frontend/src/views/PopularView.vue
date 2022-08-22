@@ -10,10 +10,11 @@
             <img :src="publication.profile.picture.original.url" alt="" class="rounded-full h-6 w-6" @click="goToProfile(publication.profile.id)">
             <span class="ml-2 text-sm xl:text-base" @click="goToProfile(publication.profile.id)">{{publication.profile.handle}}</span>
             <div class="grow"></div>
-            <img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100">
-            <span class="text-sm ml-0.5">{{publicationList[0].likes}}</span>
+            <img src="../assets/icons/heart.svg" alt="" class="w-4 fill-current text-red-100" v-if="likedPublicationIds.includes(publication.id)">
+            <img src="../assets/icons/heart-outline.svg" alt="" class="w-4 fill-current text-red-100" v-else>
+            <!-- <span class="text-sm ml-0.5" v-if="likedPublicationIds.includes(publication.id)">{{publicationList[0].likes}}</span> -->
             <img src="../assets/icons/collection-outline.svg" alt="" class="w-4 fill-gray-100 ml-2">
-            <span class="text-sm ml-0.5">{{publicationList[0].collect}}</span>
+            <span class="text-sm ml-0.5">{{publication.stats.totalAmountOfCollects}}</span>
           </div>
         </div>
       </div>

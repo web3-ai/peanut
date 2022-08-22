@@ -3,9 +3,10 @@
 		<div class="flex flex-row-reverse items-center h-8" @click="goBack">
 			<img src="@/assets/icons/close.svg" alt="" class="h-6 mr-1 cursor-pointer">
 		</div>
-		<div class="flex flex-col bg-white h-full rounded-t-xl 2xl:flex-row overflow-y-scroll" id="publication-detail-page" v-if="currentPublication!=null">
+		<div class="flex flex-col bg-white h-full rounded-t-xl 2xl:flex-row overflow-y-scroll" ref="pubContainer" id="pubContainer" v-if="currentPublication!=null">
 			<div class="mx-auto container p-10 flex flex-col 2xl:w-3/4">
 				<div class="flex" id="publication-detail-header">
+					<!-- current reaction: {{currentPublication.reaction}} -->
 					<div class="flex h-12">
 						<img :src="currentPublication.profile.picture.original.url" alt="avatar of the creator" class="rounded-full cursor-pointer" @click="goToProfile(currentPublication.profile.id)">
 						<div class="flex flex-col ml-3">
@@ -19,22 +20,31 @@
 					</div>
 					<div class="grow"></div>
 					
-					<div v-if="defaultProfile!==null">
-						<button class="btn btn-red" v-if="!userIsAuthor" @click="requestCollect(currentPublication.id)">
+					<div class="min-w-fit" v-if="defaultProfile!==null">
+						<button class="btn btn-not-allowed" v-if="collectInProgress">
+							Collecting
+						</button>
+						<button class="btn btn-red" v-else-if="!userIsAuthor&&!currentPublication.hasCollectedByMe" @click="requestCollect(currentPublication.id)">
 							Collect
 						</button>
-						<button class="btn btn-not-allowed" v-else>
-							Collect
+						<button class="btn btn-white" v-else-if="currentPublication.hasCollectedByMe&&!userIsAuthor">
+							Collected
 						</button>
-						<!-- <button class="btn btn-red ml-10">
+						<button class="btn btn-white" v-else>
+							Collect {{currentPublication.stats.totalAmountOfCollects}}
+						</button>
+						<button class="btn btn-red ml-10" @click="likedAPublications(currentPublication.id)" v-if="!likedPublicationIds.includes(currentPublication.id)">
 							Like
-						</button> -->
+						</button>
+						<button class="btn btn-white ml-10" @click="unlikedAPublications(currentPublication.id)" v-else>
+							Liked
+						</button>
 					</div>
 				</div>
 				<div class="flex flex-col mt-10" id="publication-detail-content">
 					<div class="text-center text-2xl">{{currentPublication.metadata.name}}</div>
 					<div v-for="media in currentPublication.metadata.media" :key="media">
-						<img :src="'https://ipfs.io/ipfs/' + media.original.url.split('//')[1]" alt="" class="mt-10 rounded-md" />
+						<img :src="'https://ipfs.io/ipfs/' + media.original.url.split('//')[1]" alt="" class="mt-10 rounded-md w-full" />
 					</div>
 					
 					<div class="text-lg mt-10 px-10">{{currentPublication.metadata.description}}</div>
@@ -53,7 +63,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeMount, onMounted, onUnmounted, toRefs, ref } from 'vue'
+import { defineComponent, onBeforeMount, onUpdated, onUnmounted, toRefs, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { store } from '../store/store'
 import RelatedPublications from '@/components/RelatedPublications.vue';
@@ -62,6 +72,7 @@ import { follow } from '../lens/follow/follow'
 import { unfollow } from '../lens/follow/unfollow'
 import { getPublication } from '../lens/publications/get-publication'
 import { collect } from '../lens/module/collect'
+import { addReaction } from '@/lens/reaction/add-reaction';
 
 
 export default defineComponent({
@@ -70,11 +81,8 @@ export default defineComponent({
 		const route = useRoute()
 		// const profileId = computed(()=>route.params.profileId) as ComputedRef<string | number>
 		const internalPublicationId = route.params.internalPublicationId
-		
-		
-		
-		onBeforeMount(()=>{
-			console.log('PublicationDetail mounted!')
+		const pubContainer = ref()
+		const updateCurrentPublication = (internalPublicationId:any)=>{
 			if (store.currentPublication === null){
 				getPublication(internalPublicationId).then((data)=>{
 					console.log('get publication')
@@ -86,6 +94,16 @@ export default defineComponent({
 			} else {
 				store.userIsAuthor = store.currentPublication.profile.id == store.defaultProfile.id
 			}
+		}
+		onBeforeMount(()=>{
+			console.log('PublicationDetail mounted!')
+			updateCurrentPublication(internalPublicationId)
+
+		})
+		onUpdated(()=>{
+			console.log('view updated')
+			console.log(pubContainer.value.scrollTop)
+			pubContainer.value.scrollTop = 0
 		})
 		onUnmounted(()=>{
 			console.log('onUnmounted publicationDetail.vue')
@@ -95,7 +113,7 @@ export default defineComponent({
 			store.userIsAuthor = null
 		})
 
-		return { ...toRefs(store), internalPublicationId, router }
+		return { ...toRefs(store), internalPublicationId, router, pubContainer }
 	},
 	methods: {
 		async requestFollow(){
@@ -107,7 +125,11 @@ export default defineComponent({
 			await unfollow(this.currentPublication.profile.id)
 		},
 		async requestCollect(internalPublicationId:string){
+			this.collectInProgress = true
 			await collect(internalPublicationId)
+		},
+		async like(internalPublicationId:string){
+			await addReaction(internalPublicationId)
 		},
 		checkFollowingStatus(){
 			// @ts-ignore
@@ -118,7 +140,7 @@ export default defineComponent({
 		},
 		goBack(){
 			console.log(window.history.length, store.previousHistoryLength)
-			if (window.history.length > store.previousHistoryLength) {
+			if (window.history.length >= store.previousHistoryLength) {
 				this.router.go(-1)
 			} else {
 				this.router.push({path: '/'})
@@ -132,7 +154,6 @@ export default defineComponent({
 		RelatedPublications,
 	},
 
-	// if currentPublication is null, get it from server
 	
 })
 </script>

@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client/core';
 import { apolloClient } from '../apollo-client';
 import { prettyJSON } from '../helpers';
+import { store } from '@/store/store';
 
 const GET_PUBLICATION = `
   query($request: PublicationQueryRequest!) {

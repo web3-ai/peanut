@@ -14,6 +14,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { search } from '@/lens/search/search-profiles-or-publications'
 
 export default defineComponent({
 	setup() {
@@ -28,6 +29,10 @@ export default defineComponent({
 			// alert(url)
 			this.router.push({path:'/search', query:{q: this.query}})
 			this.query = ''
+			search().then((data)=>{
+				console.log('search results')
+				console.log(data)
+			})
 		}
 	}
 })
