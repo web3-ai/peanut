@@ -74,9 +74,12 @@ export default defineComponent({
     },
     goToProfile(){
       console.log('go to my profile')
+
+      // eslint-disable-next-line
+      const that = this
       getPublications(this.defaultProfile.id).then((data)=>{
 				console.log('getPublications')
-				store.publicationsByCurrentProfile = data.publications.items
+				that.publicationsByCurrentProfile = data.publications.items
 			})
 			this.currentProfile = this.defaultProfile
 			this.userIsFollowing = null

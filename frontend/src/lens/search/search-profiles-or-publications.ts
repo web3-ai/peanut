@@ -332,7 +332,7 @@ const searchRequest = (request: { query: string; type: string; sources: string[]
 
 export const search = async () => {
   const result = await searchRequest({
-    query: 'APP',
+    query: 'Light',
     type: 'PUBLICATION',
     sources: ['peanut37'],
   });

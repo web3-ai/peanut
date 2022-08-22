@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-col relative h-[calc(100vh-4rem)] px-10">
+  <div class="flex mt-10 flex-col relative h-[calc(100vh-4rem)] px-10">
     <div class="flex mb-3">
       <button class="btn btn-white" @click="goBack">Cancel</button>
       <div class="grow"></div>
       <button class="btn btn-blue" @click="addFilesToNFTStorage" v-if="previewURL.length>0">Submit</button>
-      <button class="btn btn-not-allowed" @click="submitoWeb3Storage" v-else>Submit</button>
+      <button class="btn btn-not-allowed" v-else>Submit</button>
 
     </div>
     
@@ -193,6 +193,8 @@ export default defineComponent({
             name: that.title,
             attributes: [],
             media: results,
+            // @ts-ignore
+            tags: that.title.split(' ').slice(0, 5), 
             appId: 'peanut37',
           }
           console.log(postJSON)
@@ -213,11 +215,12 @@ export default defineComponent({
               const imageCID = results[0].item.split('//')[1]
               const url = 'https://oeog73oa9k.execute-api.us-west-2.amazonaws.com/1/add-publication' + '?publicationId=' + internalPublicationId + '&imageUrl=https://ipfs.io/ipfs/' + imageCID
               console.log(url)
-              fetch(url).then(function(response) {
+              fetch(url, { mode: 'cors'}).then(function(response) {
                 console.log('add publication to server succeeded!')
                 return response.json()
               }).then(function(data) {
                 console.log(data.status)
+                window.location.href = '/p/' + internalPublicationId
               });
             })
           })

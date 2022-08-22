@@ -112,6 +112,7 @@ const GET_PUBLICATION = `
     name
     description
     content
+    image
     media {
       original {
         ...MediaFields

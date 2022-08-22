@@ -11,14 +11,16 @@
 						<img :src="currentPublication.profile.picture.original.url" alt="avatar of the creator" class="rounded-full cursor-pointer" @click="goToProfile(currentPublication.profile.id)">
 						<div class="flex flex-col ml-3">
 							<span class="font-bold my-auto cursor-pointer" @click="goToProfile(currentPublication.profile.id)">{{currentPublication.profile.handle}}</span>
-							<span v-if="!(defaultProfile==null || userIsAuthor)">
-								<span v-if="userIsFollowing===false&&followInProgress===false" class="hover:text-blue-600 cursor-pointer" @click="requestFollow">Follow</span>
+							<span v-if="!(defaultProfile==null || userIsAuthor)&&userIsFollowing!==null">
+								<span v-if="userIsFollowing===false&&followInProgress===false" class="hover:text-red-500 cursor-pointer" @click="requestFollow">Follow</span>
 								<span v-else-if="followInProgress===true" class="text-gray-500 italic">Request pending...</span>
 								<span v-else>Following (<span class="hover:text-red-600 cursor-pointer" @click="requestUnfollow">unfollow</span>)</span>
 							</span> <!-- Following logic here -->
+							<span v-else>&nbsp;</span>
 						</div>
 					</div>
-					<div class="grow"></div>
+					<div class="grow">
+					</div>
 					
 					<div class="min-w-fit" v-if="defaultProfile!==null">
 						<button class="btn btn-not-allowed" v-if="collectInProgress">
@@ -33,10 +35,10 @@
 						<button class="btn btn-white" v-else>
 							Collect {{currentPublication.stats.totalAmountOfCollects}}
 						</button>
-						<button class="btn btn-red ml-10" @click="likedAPublications(currentPublication.id)" v-if="!likedPublicationIds.includes(currentPublication.id)">
+						<button class="btn btn-red ml-10" @click="likeAPublications(currentPublication.id)" v-if="!likedPublicationIds.includes(currentPublication.id)">
 							Like
 						</button>
-						<button class="btn btn-white ml-10" @click="unlikedAPublications(currentPublication.id)" v-else>
+						<button class="btn btn-white ml-10" @click="unlikeAPublications(currentPublication.id)" v-else>
 							Liked
 						</button>
 					</div>
@@ -113,6 +115,12 @@ export default defineComponent({
 			store.userIsAuthor = null
 		})
 
+		// @ts-ignore
+		doesFollow(store.address, store.currentProfile.id).then((data)=>{
+			console.log('Does the user follow the account?', data.doesFollow[0].follows)
+			store.userIsFollowing = data.doesFollow[0].follows
+		})
+
 		return { ...toRefs(store), internalPublicationId, router, pubContainer }
 	},
 	methods: {
@@ -127,6 +135,8 @@ export default defineComponent({
 		async requestCollect(internalPublicationId:string){
 			this.collectInProgress = true
 			await collect(internalPublicationId)
+			console.log('Finish collection')
+			this.currentPublication.hasCollectedByMe = true
 		},
 		async like(internalPublicationId:string){
 			await addReaction(internalPublicationId)

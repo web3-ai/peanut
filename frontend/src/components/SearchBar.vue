@@ -15,6 +15,7 @@
 import { defineComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { search } from '@/lens/search/search-profiles-or-publications'
+import { store } from '@/store/store'
 
 export default defineComponent({
 	setup() {
@@ -25,14 +26,18 @@ export default defineComponent({
 	methods: {
 		search(){
 			console.log(this.query)
+			store.searchResultsPublicationList = store.popularPublicationList.filter(e => e.metadata.name.toLowerCase().includes(this.query.toLowerCase()))
+		
+
+
 			// const url = '/search?q='+this.query
 			// alert(url)
 			this.router.push({path:'/search', query:{q: this.query}})
 			this.query = ''
-			search().then((data)=>{
-				console.log('search results')
-				console.log(data)
-			})
+			// search().then((data)=>{
+			// 	console.log('search results')
+			// 	console.log(data)
+			// })
 		}
 	}
 })

@@ -10,7 +10,7 @@
 	</div>
 
 	<div class="mt-10 grid grid-cols-2 gap-8 md:grid-cols-2 lg:grid-cols-4 3xl:grid-cols-6" v-if="defaultProfile !== null">
-		<div class="rounded-md relative cursor-pointer group" v-for="(publication, index) in recommendedPublicationList" v-bind:key="publication.id">
+		<div class="rounded-md relative cursor-pointer group" :class="{ 'hidden': blockPublications.includes(publication.id) }" v-for="(publication, index) in recommendedPublicationList" v-bind:key="publication.id">
 			<img :src="'https://ipfs.io/ipfs/' + publication.metadata.image.split('//')[1]" alt="" class="w-full aspect-4/3 object-cover rounded-md" @click="goToDetail(index)">
 			<div class="absolute top-0 hidden group-hover:block w-full aspect-4/3 bg-gradient-to-t from-gray-900/50" @click="goToDetail(index)">
 				<div class="absolute bottom-3 px-4 text-white">{{publication.metadata.name}}</div>
